@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify,request
 from flask_migrate import Migrate
 from models import setup_db,Plant,db
 from flask_cors import CORS
@@ -15,14 +15,21 @@ def after_request(response):
     response.headers.add('Access-Controll-Allow-Methods','POST,PATCH,DELETE,GET,OPTIONS')
     return response
 
-@app.route('/')
-def index():
-    return jsonify({'name':'Nuwan'})
+@app.route('/plants',methods=['GET'])
+def get_all_plants():
+    # #adding pagination
+    page = request.args.get('page',1,type=int)  # if arg object page not found assign default to 1
+    start = (page-1)*10
+    end = start +10
 
-@app.route('/messages')
-#@cross_origin()
-def get_messages():
-    return jsonify({'name':'Nuwan11111111111111111'})
+    plants = Plant.query.all()
+    formatted_plants = [plant.format() for plant in plants]
+    print(plants)
+    return jsonify({
+        'plants':formatted_plants[start:end],
+        'total_plants':len(formatted_plants),
+        'success':True
+    })
 
 if __name__ == "__main__":
     app.run()
